@@ -17,16 +17,26 @@ void readButtons_task(void * pvParameters) {
   
 }
 
+TaskHandle_t ledTaskHandle;
+
+void led_task(void *pvParameters) {
+    for (;;) {
+        ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+        turnOnLED();
+        vTaskDelay(pdMS_TO_TICKS(30));
+        turnOffLED();
+    }
+}
+
 
 // Metronome
 void buzzer_task(void * pvParameters) {
   for (;;) {
-  //Toggle LED and the Buzzer
-  blinkLED();
-  // Migging: toggle Buzzer
   xSemaphoreTake(metronome_mutex, portMAX_DELAY);
   double period_ms = periodMetronome_ms;
   xSemaphoreGive(metronome_mutex);
+  xTaskNotifyGive(ledTaskHandle);
   tone(pinBuzzer, 1000, 30);
   vTaskDelay(period_ms / portTICK_PERIOD_MS);
   }
@@ -64,6 +74,7 @@ void setup() {
   initializeMetronomeBPM();
 
   xTaskCreate(readButtons_task,   "button_task",   4096, NULL, 3, NULL);
+  xTaskCreate(led_task, "led_task", 2048, NULL, 2, &ledTaskHandle);
   xTaskCreate(buzzer_task,   "buzzer_task",   4096, NULL, 2, NULL);
   xTaskCreate(updateDisplay_task, "updateDisplay_task", 4096, NULL, 1, NULL);
   //Serial.begin(9600);

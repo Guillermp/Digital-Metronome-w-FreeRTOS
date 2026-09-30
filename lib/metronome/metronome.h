@@ -11,8 +11,8 @@ extern volatile double periodMetronome_ms;
 
 extern QueueHandle_t display_queue;
 
-uint8_t step_increase(uint8_t current_step, uint8_t array_len);
-uint8_t step_decrease(uint8_t current_step, uint8_t array_len);
+uint8_t step_increase(uint8_t current_step);
+uint8_t step_decrease(uint8_t current_step);
 
 void initializeMetronomeBPM(void);
 

@@ -1,18 +1,20 @@
 #include "metronome.h"
 
-volatile static uint8_t step = 0;
+volatile static uint8_t step = 0U;
 QueueHandle_t display_queue = NULL;
 
 // period to achieve the desired BPMs (check the documentation)
-const static double bpm_values[] = {
-    60, 70, 80, 90, 100, 110, 120, 130, 140, 150, 160
-};
+const static double bpm_min_value = 40.0;
+const static double bpm_max_value = 250.0;
+const static double bpm_resolution = 10.0;
+
+const static uint8_t step_max = (bpm_max_value - bpm_min_value)/bpm_resolution;
 
 double getMetronomeBPM(void) {
-    return bpm_values[step];
+    return bpm_min_value + bpm_resolution*step;
 }
 
-volatile double periodMetronome_ms = 60000.0/bpm_values[0];
+volatile double periodMetronome_ms = 60000.0/bpm_min_value;
 
 void initializeMetronomeBPM(void){
     // set the BPM to the initial value of the table
@@ -29,22 +31,23 @@ void initializeMetronomeBPM(void){
 }
 
 // Pure logic functions
-uint8_t step_increase(uint8_t current_step, uint8_t array_len) {
+uint8_t step_increase(uint8_t current_step) {
     current_step++;
-    if (current_step >= array_len) current_step = 0;
+    if (current_step >= step_max) current_step = 0;
     return current_step;
 }
 
-uint8_t step_decrease(uint8_t current_step, uint8_t array_len) {
+uint8_t step_decrease(uint8_t current_step) {
     if (current_step == 0)
-        return array_len - 1;
+        return step_max - 1;
     return current_step - 1;
 }
 
 void increaseMetronomeRate(void) {
-    step = step_increase(step, ARRAY_LEN(bpm_values));
-    periodMetronome_ms = 60000.0/bpm_values[step];
+    step = step_increase(step);
     double bpm = getMetronomeBPM();
+    periodMetronome_ms = 60000.0/bpm;
+    
     if (xQueueOverwrite(display_queue, &bpm) != pdTRUE) {
     }
     else {
@@ -53,11 +56,9 @@ void increaseMetronomeRate(void) {
 }
 
 void decreaseMetronomeRate(void) {
-    step = step_decrease(step, ARRAY_LEN(bpm_values));
-    cli();
-    periodMetronome_ms = 60000.0/bpm_values[step];
-    sei();
+    step = step_decrease(step);
     double bpm = getMetronomeBPM();
+    periodMetronome_ms = 60000.0/bpm;
     if (xQueueOverwrite(display_queue, &bpm) != pdTRUE) {
     }
     else {
