@@ -1,11 +1,18 @@
+Run the debounce tests from the repository root:
 
-This directory is intended for PlatformIO Test Runner and project tests.
+    pio test --project-conf test/platformio.ini -e native
 
-Unit Testing is a software testing method by which individual units of
-source code, sets of one or more MCU program modules together with associated
-control data, usage procedures, and operating procedures, are tested to
-determine whether they are fit for use. Unit testing finds problems early
-in the development cycle.
+The separate test configuration compiles lib/button/button.c unchanged on the
+host. test/stubs/Arduino.h and hardware_stubs.cpp provide only the hardware
+and BPM dependencies; the debounce implementation and Button objects come
+from the production source. Each test resets state and installs counting
+callbacks. No ESP32 is needed.
 
-More information about PlatformIO Unit Testing:
-- https://docs.platformio.org/en/latest/advanced/unit-testing/index.html
+GitHub Actions runs this command on pushes, pull requests, and manual runs.
+The nine tests cover the five-sample threshold, bounce rejection in both
+directions, counter resets, held buttons, repeated presses, and independent
+buttons. Physical button polarity, hardware timing, and RTOS scheduling are
+outside this suite.
+
+The old BPM tests referenced an obsolete two-argument step_increase /
+step_decrease API. This suite currently covers debouncing only.
