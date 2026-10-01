@@ -11,10 +11,6 @@ void turnOnLED(void);
 
 void turnOffLED(void);
 
-void toggleLED(void);
-
-void blinkLED(void);
-
 #ifdef __cplusplus
 }
 #endif

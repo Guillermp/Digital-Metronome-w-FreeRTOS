@@ -30,11 +30,10 @@ void led_task(void *pvParameters) {
 }
 
 
-// Metronome
 void buzzer_task(void * pvParameters) {
   for (;;) {
   xSemaphoreTake(metronome_mutex, portMAX_DELAY);
-  double period_ms = periodMetronome_ms;
+  double period_ms = getMetronomePeriod();
   xSemaphoreGive(metronome_mutex);
   xTaskNotifyGive(ledTaskHandle);
   tone(pinBuzzer, 1000, 30);

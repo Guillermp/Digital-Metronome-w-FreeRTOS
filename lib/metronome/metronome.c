@@ -14,8 +14,9 @@ double getMetronomeBPM(void) {
     return bpm_min_value + bpm_resolution*step;
 }
 
-volatile double periodMetronome_ms = 60000.0/bpm_min_value;
-
+double getMetronomePeriod(void) {
+    return 60000.0/getMetronomeBPM();
+}
 void initializeMetronomeBPM(void){
     // set the BPM to the initial value of the table
     cli();
@@ -31,13 +32,13 @@ void initializeMetronomeBPM(void){
 }
 
 // Pure logic functions
-uint8_t step_increase(uint8_t current_step) {
+uint8_t static step_increase(uint8_t current_step) {
     current_step++;
     if (current_step >= step_max) current_step = 0;
     return current_step;
 }
 
-uint8_t step_decrease(uint8_t current_step) {
+uint8_t static step_decrease(uint8_t current_step) {
     if (current_step == 0)
         return step_max - 1;
     return current_step - 1;
@@ -46,8 +47,6 @@ uint8_t step_decrease(uint8_t current_step) {
 void increaseMetronomeRate(void) {
     step = step_increase(step);
     double bpm = getMetronomeBPM();
-    periodMetronome_ms = 60000.0/bpm;
-    
     if (xQueueOverwrite(display_queue, &bpm) != pdTRUE) {
     }
     else {
@@ -58,7 +57,6 @@ void increaseMetronomeRate(void) {
 void decreaseMetronomeRate(void) {
     step = step_decrease(step);
     double bpm = getMetronomeBPM();
-    periodMetronome_ms = 60000.0/bpm;
     if (xQueueOverwrite(display_queue, &bpm) != pdTRUE) {
     }
     else {
