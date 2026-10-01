@@ -14,7 +14,7 @@ Interesting features of the implementation:
 
 ## Using FreeRTOS
 
-![image](metronome_tasks.png)
+![image](multimedia/metronome_tasks.png)
 
 Figure: Visual organization of tasks.
 
