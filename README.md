@@ -1,6 +1,13 @@
 # Metronome Project
 ## Demo of the current prototype
 
+<p align="center">
+  <a href="https://github.com/user-attachments/assets/20193ea9-4742-453e-8387-5ea4fb6095f3">
+    <img src="multimedia/demo-thumbnail.png" width="400" alt="FreeRTOS Metronome demo">
+  </a>
+  <br>
+  <em>Click to watch the demo (sound on)</em>
+</p>
 
 ## Introduction
 
