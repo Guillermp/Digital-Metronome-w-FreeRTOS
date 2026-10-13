@@ -11,8 +11,9 @@ callbacks. No ESP32 is needed.
 GitHub Actions runs this command on pushes, pull requests, and manual runs.
 The nine tests cover the five-sample threshold, bounce rejection in both
 directions, counter resets, held buttons, repeated presses, and independent
-buttons. Physical button polarity, hardware timing, and RTOS scheduling are
-outside this suite.
+buttons. The tests model active-low INPUT_PULLUP buttons: LOW is pressed and HIGH is
+released. Physical wiring, hardware timing, and RTOS scheduling are outside
+this suite.
 
 The old BPM tests referenced an obsolete two-argument step_increase /
 step_decrease API. This suite currently covers debouncing only.

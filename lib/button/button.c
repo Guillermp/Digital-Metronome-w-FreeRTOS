@@ -2,8 +2,8 @@
 #include "metronome.h"
 
 
-volatile struct Button button_up = {0, THRESHOLD_DEBOUNCING, pinButtonUp, &increaseMetronomeRate};
-volatile struct Button button_down = {0, THRESHOLD_DEBOUNCING, pinButtonDown, &decreaseMetronomeRate};
+volatile struct Button button_up = {1, THRESHOLD_DEBOUNCING, pinButtonUp, &increaseMetronomeRate};
+volatile struct Button button_down = {1, THRESHOLD_DEBOUNCING, pinButtonDown, &decreaseMetronomeRate};
 
 
 void initButtons(void) {
