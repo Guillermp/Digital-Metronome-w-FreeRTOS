@@ -8,6 +8,7 @@
 #include "button.h"
 #include "metronome.h"
 #include "website.h"
+#include "wifi_secrets.h"
 
 // Defined in main.cpp.
 extern SemaphoreHandle_t metronome_mutex;
@@ -15,8 +16,6 @@ extern QueueHandle_t beatsPerMeasure_queue;
 
 namespace RiffWeb {
 
-constexpr char WIFI_SSID[] = "iPhone de Guillermo";
-constexpr char WIFI_PASSWORD[] = "465hyffghfx";
 constexpr char HOSTNAME[] = "metronome";
 
 constexpr uint8_t STREAK_TARGET = 3;
