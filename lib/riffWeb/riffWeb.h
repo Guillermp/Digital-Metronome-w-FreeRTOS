@@ -7,9 +7,11 @@
 
 #include "button.h"
 #include "metronome.h"
+#include "website.h"
 
 // Defined in main.cpp.
 extern SemaphoreHandle_t metronome_mutex;
+extern QueueHandle_t beatsPerMeasure_queue;
 
 namespace RiffWeb {
 
@@ -22,6 +24,7 @@ constexpr uint8_t STREAK_TARGET = 3;
 bool learningMode = false;
 uint8_t successStreak = 0;
 uint8_t failStreak = 0;
+uint32_t selectedBeatsPerMeasure = Measures::fourBeatsPerMeasure;
 
 WebServer server(80);
 
@@ -87,213 +90,14 @@ void sendState() {
     json += String(failures);
     json += ",\"lives\":";
     json += String(STREAK_TARGET - failures);
+    json += ",\"beatsPerMeasure\":";
+    json += String(selectedBeatsPerMeasure);
     json += "}";
 
     server.sendHeader("Cache-Control", "no-store");
     server.send(200, "application/json", json);
 }
 
-const char PAGE[] PROGMEM = R"HTML(
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Riff learning</title>
-
-  <style>
-    body {
-      margin: 0;
-      padding: 40px 20px;
-      background: #10141c;
-      color: #f0f4ff;
-      font-family: system-ui, sans-serif;
-      text-align: center;
-    }
-
-    main {
-      max-width: 440px;
-      margin: auto;
-    }
-
-    .card {
-      background: #1d2533;
-      padding: 24px;
-      border-radius: 16px;
-      margin: 20px 0;
-    }
-
-    #bpm {
-      font-size: 64px;
-      font-weight: bold;
-    }
-
-    button {
-      width: 100%;
-      padding: 16px;
-      border: 0;
-      border-radius: 10px;
-      background: #a6f3c0;
-      color: #102017;
-      font-size: 18px;
-      cursor: pointer;
-    }
-
-    button:disabled {
-      opacity: 0.5;
-      cursor: wait;
-    }
-
-    #lives {
-      color: #ff8397;
-      font-size: 36px;
-      letter-spacing: 8px;
-    }
-
-    #success { color: #a6f3c0; }
-    #failure { color: #ff8397; }
-
-    .hint, #connection {
-      color: #b7c3d8;
-    }
-  </style>
-</head>
-
-<body>
-<main>
-  <h1>Riff learning</h1>
-
-  <div class="card">
-    <div id="bpm">—</div>
-    <div>BPM</div>
-  </div>
-
-  <button id="mode" disabled>Connecting…</button>
-
-  <section id="practice" class="card" hidden>
-    <div id="lives" role="img" aria-label="Lives"></div>
-
-    <p>
-      Success streak:
-      <strong id="success">0 / 3</strong>
-    </p>
-
-    <p>
-      Mistake streak:
-      <strong id="failure">0 / 3</strong>
-    </p>
-
-    <p class="hint">
-      UP button: played correctly<br>
-      DOWN button: made a mistake
-    </p>
-
-    <p class="hint">
-      Three successes: +10 BPM<br>
-      Three mistakes: −10 BPM<br>
-      Counters reset after each group of three.
-    </p>
-  </section>
-
-  <p id="normal" class="hint">
-    Normal mode: buttons adjust BPM.
-  </p>
-
-  <p id="connection" role="status">Connecting…</p>
-</main>
-
-<script>
-  const modeButton = document.getElementById("mode");
-  const connection = document.getElementById("connection");
-
-  let learning = false;
-  let busy = false;
-
-  function render(data) {
-    learning = data.learning;
-
-    document.getElementById("bpm").textContent = data.bpm;
-    document.getElementById("practice").hidden = !learning;
-    document.getElementById("normal").hidden = learning;
-
-    modeButton.textContent = learning
-      ? "Disable riff learning"
-      : "Enable riff learning";
-
-    document.getElementById("success").textContent =
-      `${data.successStreak} / 3`;
-
-    document.getElementById("failure").textContent =
-      `${data.failStreak} / 3`;
-
-    const lives = document.getElementById("lives");
-
-    lives.textContent =
-      "♥".repeat(data.lives) + "♡".repeat(3 - data.lives);
-
-    lives.setAttribute(
-      "aria-label",
-      `${data.lives} of 3 lives remaining`
-    );
-  }
-
-  async function refresh(changeMode = false) {
-    if (busy) return;
-
-    busy = true;
-
-    if (changeMode) {
-    modeButton.disabled = true;
-    }
-
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-
-    try {
-      let url = "/api/state";
-      const options = {
-        cache: "no-store",
-        signal: controller.signal
-      };
-
-      if (changeMode) {
-        url = "/api/mode";
-        options.method = "POST";
-        options.headers = {
-          "Content-Type": "application/x-www-form-urlencoded"
-        };
-
-        // Send the desired state instead of a blind toggle.
-        options.body = `enabled=${learning ? 0 : 1}`;
-      }
-
-      const response = await fetch(url, options);
-
-      if (!response.ok) {
-        throw new Error("Request failed");
-      }
-
-      render(await response.json());
-
-      connection.textContent = "Connected";
-      modeButton.disabled = false;
-    } catch (error) {
-      connection.textContent =
-        "Connection lost. Display may be stale. Retrying…";
-    } finally {
-      clearTimeout(timeout);
-      busy = false;
-    }
-  }
-
-  modeButton.addEventListener("click", () => refresh(true));
-
-  refresh();
-  setInterval(() => refresh(), 1000);
-</script>
-</body>
-</html>
-)HTML";
 
 void begin() {
     // Call before starting the button task.
@@ -328,6 +132,29 @@ void begin() {
         }
 
         xSemaphoreGive(metronome_mutex);
+
+        sendState();
+    });
+
+    server.on("/api/measure", HTTP_POST, []() {
+        const String value = server.arg("beats");
+        if (value != "2" && value != "3" && value != "4") {
+            server.send(400, "application/json",
+                        "{\"error\":\"beats must be 2, 3 or 4\"}");
+            return;
+        }
+
+        const uint32_t requestedBeats = static_cast<uint32_t>(value.toInt());
+        if (requestedBeats != selectedBeatsPerMeasure) {
+            if (beatsPerMeasure_queue == nullptr ||
+                xQueueOverwrite(beatsPerMeasure_queue, &requestedBeats) != pdTRUE) {
+                server.send(503, "application/json",
+                            "{\"error\":\"Could not update beats per measure\"}");
+                return;
+            }
+            // Requested setting; the buzzer consumes it on its next iteration.
+            selectedBeatsPerMeasure = requestedBeats;
+        }
 
         sendState();
     });

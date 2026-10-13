@@ -10,6 +10,12 @@ extern "C" {
 
 extern QueueHandle_t display_queue;
 
+enum Measures {
+    fourBeatsPerMeasure = 4,
+    threeBeatsPerMeasure = 3,
+    twoBeatsPerMeasure = 2
+};
+
 void initializeMetronomeBPM(void);
 
 void increaseMetronomeRate(void);
