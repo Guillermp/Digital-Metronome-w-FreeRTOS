@@ -32,3 +32,16 @@ Figure: Visual organization of tasks.
 - Event-driven tasks (blocked until they are needed):
 	- `updateDisplay_task`: Blocks until a BPM value is available in the display queue, then updates the LCD.
     - `led_task`: It makes the LED blink. It waits for the buzzer to indicate a pulse to turn it on. And turns it off after 30 ms.
+
+
+## Features to implement
+
+Adding a Website that can toggle a "riff learning mode". It gives you three lives and a streak. If you toggle this mode via the website the two buttons have a different function. If I manage to play the riff correctly I press one and otherwise I press the other.
+- If I play the riff with a mistake three times in a row the bpm goes down by 10BPM
+- If I play the riff without a mistake three times in a row the bpm goes up by 10BPM
+
+The website should display the mistake or success strike somehow
+
+So Website:
+- Input: button to toggle the mode to riff mode
+- Display states: display the strike cound (either of failed attempts or successes)

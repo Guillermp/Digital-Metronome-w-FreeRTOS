@@ -2,6 +2,7 @@
 #include "button.h"
 #include "metronome.h"
 #include "buzzer.h"
+#include "riffWeb.h"
 
 SemaphoreHandle_t metronome_mutex;
 
@@ -36,7 +37,7 @@ void buzzer_task(void * pvParameters) {
   double period_ms = getMetronomePeriod();
   xSemaphoreGive(metronome_mutex);
   xTaskNotifyGive(ledTaskHandle);
-  tone(pinBuzzer, 1000, 30);
+  tone(pinBuzzer, 500, 30);
   vTaskDelay(period_ms / portTICK_PERIOD_MS);
   }
 }
@@ -71,13 +72,19 @@ void setup() {
   initBuzzer ();
   lcd_init(); // SDA on pin 4 and SCL on pin 6
   initializeMetronomeBPM();
+  Serial.begin(115200);
+
+  RiffWeb::begin();
 
   xTaskCreate(readButtons_task,   "button_task",   4096, NULL, 3, NULL);
   xTaskCreate(led_task, "led_task", 2048, NULL, 2, &ledTaskHandle);
   xTaskCreate(buzzer_task,   "buzzer_task",   4096, NULL, 2, NULL);
   xTaskCreate(updateDisplay_task, "updateDisplay_task", 4096, NULL, 1, NULL);
-  //Serial.begin(9600);
+  
 
 }
 
-void loop(){}
+void loop(){
+  RiffWeb::service();
+  delay(2);
+}
