@@ -35,7 +35,7 @@ void debouncing_logic(uint8_t raw_reading, volatile struct Button* buttonPtr) {
             buttonPtr->counter = THRESHOLD_DEBOUNCING;
 
             //If the debounced value is pressed
-            if (buttonPtr->debounced_button_state == 1) {
+            if (buttonPtr->debounced_button_state == 0) {
                 buttonPtr->fptr(); // Increase or decrese the BPM of the metronome
             }
 
