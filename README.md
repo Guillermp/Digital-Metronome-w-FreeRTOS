@@ -2,7 +2,7 @@
 ## Demo of the current prototype
 
 <p align="center">
-  <a href="https://github.com/user-attachments/assets/20193ea9-4742-453e-8387-5ea4fb6095f3">
+  <a href="https://www.youtube.com/watch?v=Ty6wWQys0Ts">
     <img src="multimedia/demo-thumbnail.png" width="400" alt="FreeRTOS Metronome demo">
   </a>
   <br>
@@ -33,15 +33,16 @@ Figure: Visual organization of tasks.
 	- `updateDisplay_task`: Blocks until a BPM value is available in the display queue, then updates the LCD.
     - `led_task`: It makes the LED blink. It waits for the buzzer to indicate a pulse to turn it on. And turns it off after 30 ms.
 
+## New features - Expanding the functionality
+Now the board connects to your wifi network to unlock new functionality. Just fill the `wifi_secrets.h` file with your credentials.
 
-## Features to implement
+From another device in the network enter `metronome.local` in browser to access the website hosted in the ESP32. Features of the website interface:
+- Displays the current BPM
+- Change the beats per measure. Options: 4 (4/4), 3 (3/4), 2 (2/4).
+- Can ennable the "riff learning mode": This changes the function of the buttons. The mode is explained in the website.
 
-Adding a Website that can toggle a "riff learning mode". It gives you three lives and a streak. If you toggle this mode via the website the two buttons have a different function. If I manage to play the riff correctly I press one and otherwise I press the other.
-- If I play the riff with a mistake three times in a row the bpm goes down by 10BPM
-- If I play the riff without a mistake three times in a row the bpm goes up by 10BPM
+![image](multimedia/website_normal_mode.png)
+Figure: Website with the metronome on normal mode
 
-The website should display the mistake or success strike somehow
-
-So Website:
-- Input: button to toggle the mode to riff mode
-- Display states: display the strike cound (either of failed attempts or successes)
+![image](multimedia/website_riff_mode.png)
+Figure: Website with the riff learning mode
