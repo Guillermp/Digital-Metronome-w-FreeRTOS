@@ -2,8 +2,8 @@
 #include "metronome.h"
 
 
-volatile struct Button button_up = {0, THRESHOLD_DEBOUNCING, pinButtonUp, &increaseMetronomeRate};
-volatile struct Button button_down = {0, THRESHOLD_DEBOUNCING, pinButtonDown, &decreaseMetronomeRate};
+volatile struct Button button_up = {1, THRESHOLD_DEBOUNCING, pinButtonUp, &increaseMetronomeRate};
+volatile struct Button button_down = {1, THRESHOLD_DEBOUNCING, pinButtonDown, &decreaseMetronomeRate};
 
 
 void initButtons(void) {
@@ -35,7 +35,7 @@ void debouncing_logic(uint8_t raw_reading, volatile struct Button* buttonPtr) {
             buttonPtr->counter = THRESHOLD_DEBOUNCING;
 
             //If the debounced value is pressed
-            if (buttonPtr->debounced_button_state == 1) {
+            if (buttonPtr->debounced_button_state == 0) {
                 buttonPtr->fptr(); // Increase or decrese the BPM of the metronome
             }
 
